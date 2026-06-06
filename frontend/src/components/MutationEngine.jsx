@@ -49,7 +49,29 @@ const colorMap = {
 
 export default function MutationEngine() {
   const [basePrompt, setBasePrompt] = useState('');
-  const [hasResults, setHasResults] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleMutate = async () => {
+    if (!basePrompt.trim()) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/mutate/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: basePrompt })
+      });
+      if (!response.ok) throw new Error('Failed to generate mutations');
+      const data = await response.json();
+      setResults(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -60,13 +82,20 @@ export default function MutationEngine() {
           <p className="text-neutral-400 mt-1 text-sm">Generate 5 intelligent variants of your prompt automatically.</p>
         </div>
         <button
-          onClick={() => basePrompt.trim() && setHasResults(true)}
-          className="flex items-center gap-2 bg-white text-black hover:bg-neutral-200 px-5 py-2 rounded-md font-medium transition-colors text-sm"
+          onClick={handleMutate}
+          disabled={isLoading || !basePrompt.trim()}
+          className="flex items-center gap-2 bg-white text-black hover:bg-neutral-200 disabled:opacity-50 px-5 py-2 rounded-md font-medium transition-colors text-sm"
         >
           <Dna className="w-4 h-4" />
-          Mutate Prompt
+          {isLoading ? 'Mutating...' : 'Mutate Prompt'}
         </button>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
+          {error}
+        </div>
+      )}
 
       {/* Base prompt input */}
       <div className="flex flex-col bg-[#0A0A0A] border border-white/10 rounded-lg overflow-hidden focus-within:border-white/30 transition-colors">
@@ -83,7 +112,7 @@ export default function MutationEngine() {
       </div>
 
       {/* Variant Cards */}
-      {!hasResults ? (
+      {!results ? (
         <div className="p-12 border border-white/5 rounded-lg bg-[#0A0A0A] flex flex-col items-center justify-center text-neutral-500 border-dashed">
           <Dna className="w-6 h-6 mb-3 opacity-50" />
           <p className="text-sm">Enter a prompt above and hit 'Mutate' to generate 5 variants.</p>
@@ -106,9 +135,8 @@ export default function MutationEngine() {
                       <h3 className={`font-medium text-sm ${c.label}`}>{v.label}</h3>
                     </div>
                     <p className="text-xs text-neutral-400 mb-3">{v.description}</p>
-                    <p className="font-mono text-xs text-neutral-300 bg-white/5 rounded px-3 py-2 leading-relaxed">
-                      {/* Placeholder generated text */}
-                      Generating mutation... click Mutate Prompt to fetch from Groq.
+                    <p className="font-mono text-xs text-neutral-300 bg-white/5 rounded px-3 py-2 leading-relaxed whitespace-pre-wrap">
+                      {results ? (typeof results[v.id] === 'string' ? results[v.id] : JSON.stringify(results[v.id])) || 'Failed to generate variant.' : 'Generating mutation...'}
                     </p>
                   </div>
                 </div>

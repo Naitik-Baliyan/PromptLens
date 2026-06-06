@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()  # Load .env file
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -16,8 +19,9 @@ from database.database import engine, Base
 from database import models
 from routes import diff, autopsy, mutate, score, dataset
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+@app.on_event("startup")
+def startup_event():
+    Base.metadata.create_all(bind=engine)
 
 # Include routers
 app.include_router(diff.router)

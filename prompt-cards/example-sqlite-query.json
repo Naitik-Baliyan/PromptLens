@@ -1,0 +1,18 @@
+{
+  "id": "example-sqlite-query",
+  "title": "Safe SQLite User Query",
+  "description": "Fetches active user emails from a SQLite database with full error handling and no external dependencies.",
+  "author": "PromptLens",
+  "version": "1.0.0",
+  "tags": ["python", "sqlite", "data-engineering", "beginner-friendly"],
+  "model": "llama-3.1-8b-instant",
+  "scores": {
+    "clarity": 92,
+    "context": 88,
+    "safety": 95,
+    "efficiency": 85
+  },
+  "prompt": "Write a Python script that connects to a SQLite database named 'users.db'. Query all records from the 'users' table where the column 'is_active' = 1 and print their email addresses to the console.\n\nConstraints:\n- Use ONLY the built-in `sqlite3` library. No SQLAlchemy or external ORMs.\n- Do NOT output any markdown formatting or conversational text — output ONLY the raw Python code.\n- Wrap the database connection and query in a try/except block to handle sqlite3.Error gracefully.\n- Close the connection in a `finally` block to prevent resource leaks.",
+  "example_output": "import sqlite3\n\ntry:\n    conn = sqlite3.connect('users.db')\n    cursor = conn.cursor()\n    cursor.execute(\"SELECT email FROM users WHERE is_active = 1\")\n    rows = cursor.fetchall()\n    for row in rows:\n        print(row[0])\nexcept sqlite3.Error as e:\n    print(f\"Database error: {e}\")\nfinally:\n    if conn:\n        conn.close()",
+  "submitted_at": "2026-06-06"
+}

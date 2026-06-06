@@ -1,8 +1,31 @@
 import React, { useState } from 'react';
-import { Stethoscope, ShieldAlert, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Stethoscope, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 export default function PromptAutopsy() {
   const [prompt, setPrompt] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleAnalyze = async () => {
+    if (!prompt.trim()) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/autopsy/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      if (!response.ok) throw new Error('Failed to fetch results');
+      const data = await response.json();
+      setResults(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -13,11 +36,20 @@ export default function PromptAutopsy() {
           </h2>
           <p className="text-neutral-400 mt-1 text-sm">Dissect your prompt structure and identify security vulnerabilities.</p>
         </div>
-        <button className="flex items-center gap-2 bg-white text-black hover:bg-neutral-200 px-5 py-2 rounded-md font-medium transition-colors text-sm">
+        <button 
+          onClick={handleAnalyze}
+          disabled={isLoading || !prompt.trim()}
+          className="flex items-center gap-2 bg-white text-black hover:bg-neutral-200 disabled:opacity-50 px-5 py-2 rounded-md font-medium transition-colors text-sm">
           <Stethoscope className="w-4 h-4" />
-          Analyze Prompt
+          {isLoading ? 'Analyzing...' : 'Analyze Prompt'}
         </button>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-12 gap-6">
         {/* Left Side: Input */}
@@ -45,7 +77,9 @@ export default function PromptAutopsy() {
                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                 <h3 className="font-medium text-white text-sm">System Instruction</h3>
              </div>
-             <p className="text-xs text-neutral-400 pl-3.5 mt-1">No role or persona detected. Consider adding "You are an expert..." to guide the model's behavior.</p>
+             <p className="text-xs text-neutral-400 pl-3.5 mt-1">
+               {results ? (typeof results.system_instruction === 'string' ? results.system_instruction : JSON.stringify(results.system_instruction)) : 'Waiting for analysis...'}
+             </p>
           </div>
 
           {/* Context Block */}
@@ -54,7 +88,9 @@ export default function PromptAutopsy() {
                 <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 <h3 className="font-medium text-white text-sm">Context & Background</h3>
              </div>
-             <p className="text-xs text-neutral-400 pl-3.5 mt-1">Waiting for analysis...</p>
+             <p className="text-xs text-neutral-400 pl-3.5 mt-1">
+               {results ? (typeof results.context === 'string' ? results.context : JSON.stringify(results.context)) : 'Waiting for analysis...'}
+             </p>
           </div>
 
           {/* Constraints */}
@@ -63,7 +99,9 @@ export default function PromptAutopsy() {
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <h3 className="font-medium text-white text-sm">Rules & Constraints</h3>
              </div>
-             <p className="text-xs text-neutral-400 pl-3.5 mt-1">Waiting for analysis...</p>
+             <p className="text-xs text-neutral-400 pl-3.5 mt-1">
+               {results ? (typeof results.constraints === 'string' ? results.constraints : JSON.stringify(results.constraints)) : 'Waiting for analysis...'}
+             </p>
           </div>
 
           {/* Security Linter */}
@@ -74,7 +112,7 @@ export default function PromptAutopsy() {
                 <h3 className="font-medium text-red-500 text-sm">Security & Jailbreak Check</h3>
              </div>
              <p className="text-xs text-neutral-400 pl-8 mt-1">
-               We will run simulated prompt injections (e.g., "Ignore all previous instructions...") to see if your constraints hold up.
+               {results ? (typeof results.security_issues === 'string' ? results.security_issues : JSON.stringify(results.security_issues)) : 'We will run simulated prompt injections (e.g., "Ignore all previous instructions...") to see if your constraints hold up.'}
              </p>
           </div>
         </div>

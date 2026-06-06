@@ -1,9 +1,32 @@
 import React, { useState } from 'react';
-import { Play, ArrowRightLeft, Sparkles } from 'lucide-react';
+import { Play, ArrowRightLeft } from 'lucide-react';
 
 export default function PromptDiff() {
   const [promptA, setPromptA] = useState('');
   const [promptB, setPromptB] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleRunBoth = async () => {
+    if (!promptA.trim() || !promptB.trim()) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/diff/compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt_a: promptA, prompt_b: promptB, model: 'llama-3.1-8b-instant' })
+      });
+      if (!response.ok) throw new Error('Failed to fetch results');
+      const data = await response.json();
+      setResults(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -14,9 +37,12 @@ export default function PromptDiff() {
           </h2>
           <p className="text-neutral-400 mt-1 text-sm">A/B test your prompts against each other in real-time.</p>
         </div>
-        <button className="flex items-center gap-2 bg-white text-black hover:bg-neutral-200 px-5 py-2 rounded-md font-medium transition-colors text-sm">
+        <button 
+          onClick={handleRunBoth}
+          disabled={isLoading || !promptA.trim() || !promptB.trim()}
+          className="flex items-center gap-2 bg-white text-black hover:bg-neutral-200 disabled:opacity-50 px-5 py-2 rounded-md font-medium transition-colors text-sm">
           <Play className="w-4 h-4" fill="currentColor" />
-          Run Both Prompts
+          {isLoading ? 'Running...' : 'Run Both Prompts'}
         </button>
       </div>
 
@@ -54,11 +80,51 @@ export default function PromptDiff() {
         </div>
       </div>
 
-      {/* Placeholder for Diff Results */}
-      <div className="mt-8 p-12 border border-white/5 rounded-lg bg-[#0A0A0A] flex flex-col items-center justify-center text-neutral-500 border-dashed">
-        <ArrowRightLeft className="w-6 h-6 mb-3 opacity-50" />
-        <p className="text-sm">Hit 'Run Both Prompts' to generate outputs and see the visual diff.</p>
-      </div>
+      {error && (
+        <div className="mt-8 p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
+      {results ? (
+        <div className="mt-8 space-y-4 animate-in fade-in duration-500">
+          <h3 className="text-lg font-medium text-white">Results</h3>
+          <div className="grid grid-cols-2 gap-6">
+            {/* Result A */}
+            <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-sm font-medium text-white">Variant A Output</span>
+                <div className="flex gap-3 text-xs text-neutral-500">
+                  <span>{results.variant_a.latency_ms}ms</span>
+                  <span>{results.variant_a.tokens.total_tokens} tokens</span>
+                </div>
+              </div>
+              <div className="text-sm text-neutral-300 font-mono whitespace-pre-wrap">
+                {results.variant_a.output}
+              </div>
+            </div>
+
+            {/* Result B */}
+            <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-sm font-medium text-white">Variant B Output</span>
+                <div className="flex gap-3 text-xs text-neutral-500">
+                  <span>{results.variant_b.latency_ms}ms</span>
+                  <span>{results.variant_b.tokens.total_tokens} tokens</span>
+                </div>
+              </div>
+              <div className="text-sm text-neutral-300 font-mono whitespace-pre-wrap">
+                {results.variant_b.output}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-8 p-12 border border-white/5 rounded-lg bg-[#0A0A0A] flex flex-col items-center justify-center text-neutral-500 border-dashed">
+          <ArrowRightLeft className="w-6 h-6 mb-3 opacity-50" />
+          <p className="text-sm">Hit 'Run Both Prompts' to generate outputs and see the visual diff.</p>
+        </div>
+      )}
     </div>
   );
 }

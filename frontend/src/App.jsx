@@ -1,16 +1,32 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { FlaskConical, Stethoscope, Wand2, Activity, Download } from 'lucide-react';
+import { Stethoscope, Wand2, Activity, Download, GitCompareArrows } from 'lucide-react';
 import PromptDiff from './components/PromptDiff';
 import PromptAutopsy from './components/PromptAutopsy';
 import MutationEngine from './components/MutationEngine';
 import ScoreDashboard from './components/ScoreDashboard';
 import ExportPanel from './components/ExportPanel';
 
+function PromptLensLogo() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="15" stroke="white" strokeWidth="1.5" />
+      <circle cx="16" cy="16" r="10" fill="url(#lens-grad)" />
+      <path d="M13 12.5L17.5 16L13 19.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <defs>
+        <radialGradient id="lens-grad" cx="50%" cy="35%" r="60%" fx="50%" fy="35%">
+          <stop offset="0%" stopColor="#818cf8" />
+          <stop offset="100%" stopColor="#4f46e5" />
+        </radialGradient>
+      </defs>
+    </svg>
+  );
+}
+
 function Sidebar() {
   const location = useLocation();
   const links = [
-    { path: '/', label: 'Compare & Diff', icon: FlaskConical },
+    { path: '/', label: 'Compare & Diff', icon: GitCompareArrows },
     { path: '/autopsy', label: 'Prompt Autopsy', icon: Stethoscope },
     { path: '/mutate', label: 'Mutation Engine', icon: Wand2 },
     { path: '/score', label: 'Scoring Dashboard', icon: Activity },
@@ -20,9 +36,7 @@ function Sidebar() {
   return (
     <div className="w-64 bg-[#0A0A0A] border-r border-white/5 h-screen flex flex-col p-4">
       <div className="flex items-center gap-3 mb-10 px-2">
-        <div className="w-8 h-8 rounded-md bg-white flex items-center justify-center shadow-sm">
-          <FlaskConical className="w-5 h-5 text-black" />
-        </div>
+        <PromptLensLogo />
         <h1 className="text-xl font-semibold text-white tracking-tight">
           PromptLens
         </h1>

@@ -16,7 +16,7 @@ from groq import Groq
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 completion = client.chat.completions.create(
-    model="llama3-8b-8192",
+    model="llama-3.1-8b-instant",
     messages=[
         {
             "role": "system",
@@ -36,7 +36,7 @@ print(completion.choices[0].message.content)`,
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const completion = await client.chat.completions.create({
-  model: "llama3-8b-8192",
+  model: "llama-3.1-8b-instant",
   messages: [
     {
       role: "system",
@@ -51,7 +51,7 @@ console.log(completion.choices[0].message.content);`,
   langchain: `from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 
-llm = ChatGroq(model="llama3-8b-8192")
+llm = ChatGroq(model="llama-3.1-8b-instant")
 
 messages = [
     SystemMessage(content="""${SAMPLE_PROMPT}"""),
@@ -81,7 +81,7 @@ export default function ExportPanel() {
 
   const handleExport = () => {
     const content = exportFormat === 'json'
-      ? JSON.stringify({ prompt: SAMPLE_PROMPT, model: 'llama3-8b-8192', scores: { clarity: 7, specificity: 5, constraints: 3, predictability: 8 } }, null, 2)
+      ? JSON.stringify({ prompt: SAMPLE_PROMPT, model: 'llama-3.1-8b-instant', scores: { clarity: 7, specificity: 5, constraints: 3, predictability: 8 } }, null, 2)
       : `# PromptLens Export\n\n## Prompt\n\n\`\`\`\n${SAMPLE_PROMPT}\n\`\`\`\n\n## Scores\n- Clarity: 7/10\n- Specificity: 5/10\n- Constraint Quality: 3/10\n- Output Predictability: 8/10`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url  = URL.createObjectURL(blob);
@@ -127,7 +127,7 @@ export default function ExportPanel() {
       <div className="p-6 rounded-lg border border-white/10 bg-[#0A0A0A]">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-white">Prompt Card Preview</h3>
-          <span className="text-xs text-neutral-500 font-mono">llama3-8b-8192 · Groq</span>
+          <span className="text-xs text-neutral-500 font-mono">llama-3.1-8b-instant · Groq</span>
         </div>
         <pre className="font-mono text-xs text-neutral-300 leading-relaxed whitespace-pre-wrap bg-white/3 rounded-md p-4 border border-white/5">
           {SAMPLE_PROMPT}
